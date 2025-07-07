@@ -18,6 +18,10 @@ class _SolicitudFormularioPageState extends State<SolicitudFormularioPage> {
   String mensaje = '';
   bool cargando = true;
 
+  final Color baseColor = const Color(0xFFF2BA9D); // 60%
+  final Color secondaryColor = const Color(0xFFEC8C68); // 20%
+  final Color accentColor = const Color(0xFFF88064); // 10%
+
   @override
   void initState() {
     super.initState();
@@ -88,54 +92,93 @@ class _SolicitudFormularioPageState extends State<SolicitudFormularioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Solicitud de Adopción')),
+      backgroundColor: baseColor.withOpacity(0.1),
+      appBar: AppBar(
+        title: const Text('Solicitud de Adopción'),
+        backgroundColor: secondaryColor,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+      ),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16),
-              child: ListView(
-                children: [
-                  const SizedBox(height: 16),
-                  DropdownButton<int>(
-                    value: selectedMascotaId,
-                    isExpanded: true,
-                    hint: const Text('Selecciona una mascota'),
-                    items: mascotas.map<DropdownMenuItem<int>>((mascota) {
-                      return DropdownMenuItem<int>(
-                        value: mascota['idmascota'],
-                        child: Text('${mascota['nombre']} (${mascota['especie']})'),
-                      );
-                    }).toList(),
-                    onChanged: (int? newValue) {
-                      setState(() {
-                        selectedMascotaId = newValue;
-                      });
-                    },
+              child: Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: ListView(
+                    children: [
+                      DropdownButtonFormField<int>(
+                        value: selectedMascotaId,
+                        decoration: InputDecoration(
+                          labelText: 'Selecciona una mascota',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        isExpanded: true,
+                        items: mascotas.map<DropdownMenuItem<int>>((mascota) {
+                          return DropdownMenuItem<int>(
+                            value: mascota['idmascota'],
+                            child: Text('${mascota['nombre']} (${mascota['especie']})'),
+                          );
+                        }).toList(),
+                        onChanged: (int? newValue) {
+                          setState(() => selectedMascotaId = newValue);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      if (selectedMascotaId != null) ..._buildMascotaInfo(),
+                      const SizedBox(height: 16),
+                      _buildTextArea(
+                        label: 'Motivo de adopción',
+                        onChanged: (val) => motivo = val,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextArea(
+                        label: 'Experiencia con mascotas',
+                        onChanged: (val) => experiencia = val,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: enviarSolicitud,
+                        icon: const Icon(Icons.send),
+                        label: const Text('Enviar Solicitud'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accentColor,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (mensaje.isNotEmpty)
+                        Text(
+                          mensaje,
+                          style: TextStyle(
+                            color: mensaje.startsWith('✅') ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  if (selectedMascotaId != null) ..._buildMascotaInfo(),
-                  const SizedBox(height: 16),
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Motivo de adopción'),
-                    maxLines: 3,
-                    onChanged: (val) => motivo = val,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Experiencia con mascotas'),
-                    maxLines: 3,
-                    onChanged: (val) => experiencia = val,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: enviarSolicitud,
-                    child: const Text('Enviar Solicitud'),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(mensaje, style: const TextStyle(color: Colors.red)),
-                ],
+                ),
               ),
             ),
+    );
+  }
+
+  Widget _buildTextArea({required String label, required Function(String) onChanged}) {
+    return TextField(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: baseColor.withOpacity(0.05),
+      ),
+      maxLines: 3,
+      onChanged: onChanged,
     );
   }
 
@@ -154,11 +197,18 @@ class _SolicitudFormularioPageState extends State<SolicitudFormularioPage> {
         : null;
 
     return [
-      const SizedBox(height: 10),
+      const SizedBox(height: 12),
       if (fotoUrl != null)
-        Image.network(fotoUrl, height: 150, fit: BoxFit.cover),
-      const SizedBox(height: 10),
-      Text('Edad: ${mascota['edad'] ?? '-'} años'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            fotoUrl,
+            height: 150,
+            fit: BoxFit.cover,
+          ),
+        ),
+      const SizedBox(height: 8),
+      Text('Edad: ${mascota['edad'] ?? '-'} años', style: const TextStyle(fontWeight: FontWeight.w500)),
       Text('Descripción: ${mascota['descripcion'] ?? 'Sin descripción'}'),
     ];
   }

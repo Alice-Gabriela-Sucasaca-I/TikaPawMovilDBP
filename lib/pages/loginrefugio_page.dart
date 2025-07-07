@@ -1,137 +1,161 @@
 import 'package:flutter/material.dart';
 import '../helpers/dio_client.dart';
-import '../widgets/tiki_navbar.dart';
 
-class LoginRefugiosPage extends StatefulWidget {
-  const LoginRefugiosPage({super.key});
+class LoginRefugioPage extends StatefulWidget {
+  const LoginRefugioPage({super.key});
 
   @override
-  State<LoginRefugiosPage> createState() => _LoginRefugiosPageState();
+  State<LoginRefugioPage> createState() => _LoginRefugioPageState();
 }
 
-class _LoginRefugiosPageState extends State<LoginRefugiosPage> {
-  final TextEditingController correoController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+class _LoginRefugioPageState extends State<LoginRefugioPage> {
+  final _formKey = GlobalKey<FormState>();
+  final correoController = TextEditingController();
+  final passwordController = TextEditingController();
+
   String mensaje = '';
   bool cargando = false;
 
-  Future<void> login() async {
-    FocusScope.of(context).unfocus();
+  final Color coral = const Color(0xFFF4A484);
+  final Color coralDark = const Color(0xFFE8926E);
+  final Color fondoSuave = const Color(0xFFFFF8F5);
+
+  Future<void> loginRefugio() async {
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() {
-      cargando = true;
       mensaje = '';
+      cargando = true;
     });
 
+    final data = {
+      'correo': correoController.text.trim(),
+      'password': passwordController.text.trim(),
+    };
+
     try {
-      final response = await DioClient.dio.post(
-        '/refugios/login',
-        data: {
-          'correo': correoController.text.trim(),
-          'password': passwordController.text.trim(),
-        },
-      );
+      final response = await DioClient.dio.post('/refugios/login', data: data);
 
-      final body = response.data;
-
-      print('Código de estado: ${response.statusCode}');
-      print('Respuesta JSON: $body');
-
-      if (response.statusCode == 200 && body['success'] == true) {
-        Navigator.pushReplacementNamed(context, '/refugio');
+      if (response.data['success'] == true) {
+        setState(() => mensaje = '✅ Inicio de sesión exitoso');
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) Navigator.pushReplacementNamed(context, '/refugio');
       } else {
-        setState(() {
-          mensaje = 'Error: ${body['message'] ?? 'No se pudo iniciar sesión'}';
-        });
+        setState(() => mensaje = response.data['message'] ?? '❌ Credenciales inválidas');
       }
     } catch (e) {
-      setState(() {
-        mensaje = 'Error de red: $e';
-      });
+      setState(() => mensaje = '⚠️ Error de red: $e');
     } finally {
-      setState(() {
-        cargando = false;
-      });
+      setState(() => cargando = false);
     }
+  }
+
+  @override
+  void dispose() {
+    correoController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login Refugios - TikiTiki')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: correoController,
-              decoration: const InputDecoration(labelText: 'Correo'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-            ),
-            const SizedBox(height: 20),
-            cargando
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: login,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
+      backgroundColor: fondoSuave,
+      appBar: AppBar(
+        title: const Text('Login Refugio'),
+        backgroundColor: coral,
+      ),
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 30),
+                    Icon(Icons.home_work_rounded, size: 80, color: coralDark),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Iniciar Sesión como Refugio',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    child: const Text('Iniciar Sesión como Refugio'),
-                  ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
+                    const SizedBox(height: 30),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: correoController,
+                            decoration: const InputDecoration(
+                              labelText: 'Correo electrónico',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.email_outlined),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) return 'Campo requerido';
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                                return 'Correo inválido';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 15),
+                          TextFormField(
+                            controller: passwordController,
+                            decoration: const InputDecoration(
+                              labelText: 'Contraseña',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.lock_outline),
+                            ),
+                            obscureText: true,
+                            validator: (value) =>
+                                value == null || value.length < 6 ? 'Mínimo 6 caracteres' : null,
+                          ),
+                          const SizedBox(height: 25),
+                          ElevatedButton.icon(
+                            onPressed: loginRefugio,
+                            icon: const Icon(Icons.login),
+                            label: const Text('Iniciar sesión'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: coralDark,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(50),
+                              textStyle: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          OutlinedButton(
+                            onPressed: () => Navigator.pushReplacementNamed(context, '/registrarrefugio'),
+                            child: const Text('¿No tienes cuenta? Regístrate'),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: coralDark),
+                              foregroundColor: coralDark,
+                              minimumSize: const Size.fromHeight(45),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                            child: Text('Iniciar sesión como Usuario', style: TextStyle(color: coralDark)),
+                          ),
+                          const SizedBox(height: 20),
+                          if (mensaje.isNotEmpty)
+                            Text(
+                              mensaje,
+                              style: TextStyle(
+                                color: mensaje.startsWith('✅') ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Volver al Login de Usuarios'),
             ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Crear Cuenta de Usuario'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/registerrefugio');
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Registrar Refugio'),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              mensaje,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: TikiNavBar(
-        selectedIndex: 4,
-        
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/about');
-        },
-        backgroundColor: Colors.teal,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

@@ -15,6 +15,11 @@ class _BuscarPageState extends State<BuscarPage> {
   bool cargando = false;
   String? error;
 
+  // Colores personalizados
+  final Color coral = const Color(0xFFF4A484);
+  final Color coralDark = const Color(0xFFE8926E);
+  final Color softBackground = const Color(0xFFFFF8F5);
+
   Future<void> _buscar() async {
     final termino = _busquedaController.text.trim();
     if (termino.isEmpty) {
@@ -69,20 +74,35 @@ class _BuscarPageState extends State<BuscarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buscar en TikaPaw')),
+      backgroundColor: softBackground,
+      appBar: AppBar(
+        title: const Text('Buscar en TikaPaw'),
+        backgroundColor: coral,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            TextField(
-              controller: _busquedaController,
-              decoration: InputDecoration(
-                labelText: 'Buscar por nombre o especie...',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: _buscar,
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 4),
+                ],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TextField(
+                controller: _busquedaController,
+                decoration: InputDecoration(
+                  hintText: 'Buscar por nombre o especie...',
+                  border: InputBorder.none,
+                  prefixIcon: Icon(Icons.search, color: coralDark),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send, color: coralDark),
+                    onPressed: _buscar,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
-                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 20),
@@ -91,23 +111,37 @@ class _BuscarPageState extends State<BuscarPage> {
             else if (error != null)
               Text(error!, style: const TextStyle(color: Colors.red))
             else if (resultados.isEmpty)
-              const Text('No hay resultados.')
+              const Text('No hay resultados todavía. Intenta buscar algo.')
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   itemCount: resultados.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final m = resultados[index];
                     return Card(
+                      color: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(
-                            'https://moviltika-production.up.railway.app/uploads/${m['foto']?.split('/').last ?? 'default.jpg'}',
+                            m['foto'] != null && m['foto'].toString().isNotEmpty
+                                ? 'https://moviltika-production.up.railway.app/uploads/${m['foto']}'
+                                : 'https://via.placeholder.com/100x100.png?text=🐾',
                           ),
+                          radius: 28,
                         ),
-                        title: Text(m['nombre']),
-                        subtitle:
-                            Text('${m['especie']} - ${m['nombrecentro']}'),
+                        title: Text(
+                          m['nombre'] ?? 'Sin nombre',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${m['especie']} - ${m['nombrecentro']}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        trailing: Icon(Icons.pets, color: coralDark),
                         onTap: () => _abrirDetalle(m),
                       ),
                     );
@@ -117,13 +151,10 @@ class _BuscarPageState extends State<BuscarPage> {
           ],
         ),
       ),
-      bottomNavigationBar: TikiNavBar(selectedIndex: 3),
+      bottomNavigationBar: const TikiNavBar(selectedIndex: 3),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/about');
-        },
-        backgroundColor: Colors.teal,
-        child: const Icon(Icons.add),
+        onPressed: () => Navigator.pushNamed(context, '/about'),
+        backgroundColor: coral,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

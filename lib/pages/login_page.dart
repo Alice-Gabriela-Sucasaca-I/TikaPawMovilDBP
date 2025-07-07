@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../helpers/dio_client.dart';
 import '../widgets/tiki_navbar.dart';
 
@@ -14,6 +15,10 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   String mensaje = '';
   bool cargando = false;
+
+  final Color coral = const Color(0xFFF4A484);
+  final Color coralDark = const Color(0xFFE8926E);
+  final Color fondoSuave = Color(0xFFFDF7F4);
 
   Future<void> login() async {
     FocusScope.of(context).unfocus();
@@ -33,19 +38,16 @@ class _LoginPageState extends State<LoginPage> {
 
       final body = response.data;
 
-      print('Código de estado: ${response.statusCode}');
-      print('Respuesta JSON: $body');
-
       if (response.statusCode == 200 && body['success'] == true) {
         Navigator.pushReplacementNamed(context, '/usuario');
       } else {
         setState(() {
-          mensaje = 'Error: ${body['message'] ?? 'No se pudo iniciar sesión'}';
+          mensaje = '❌ ${body['message'] ?? 'No se pudo iniciar sesión'}';
         });
       }
     } catch (e) {
       setState(() {
-        mensaje = 'Error de red: $e';
+        mensaje = '⚠️ Error de red: $e';
       });
     } finally {
       setState(() {
@@ -57,67 +59,130 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login - TikiTiki')),
+      backgroundColor: fondoSuave,
+      appBar: AppBar(
+        title: const Text('Iniciar Sesión'),
+        backgroundColor: coral,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: correoController,
-              decoration: const InputDecoration(labelText: 'Correo'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-            ),
-            const SizedBox(height: 20),
-            cargando
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: login,
-                    child: const Text('Iniciar Sesión'),
-                  ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context,  '/register');
-              },
-              child: const Text('Crear Cuenta'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/registerrefugio');
-              },
-              child: const Text('Registrar Refugio'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/loginrefugio');
-              },
-              child: const Text('Iniciar sesión como Refugio'),
+            const SizedBox(height: 30),
+            Center(
+              child: Image.asset(
+                'assets/logo.png',
+                height: 120,
+              ),
             ),
             const SizedBox(height: 20),
             Text(
-              mensaje,
-              style: const TextStyle(color: Colors.red),
+              'Bienvenido a TikaPaw 🐾',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
+            const SizedBox(height: 30),
+            TextField(
+              controller: correoController,
+              decoration: InputDecoration(
+                labelText: 'Correo electrónico',
+                prefixIcon: const Icon(Icons.email_outlined),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                prefixIcon: const Icon(Icons.lock_outline),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 25),
+            cargando
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton.icon(
+                    onPressed: login,
+                    icon: const Icon(Icons.login),
+                    label: const Text('Iniciar Sesión'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: coralDark,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(fontSize: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/crearcuenta'),
+              icon: const Icon(Icons.person_add_alt_1),
+              label: const Text('Crear Cuenta de Usuario'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: coralDark),
+                foregroundColor: coralDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/registrarrefugio'),
+              icon: const Icon(Icons.home_work_outlined),
+              label: const Text('Registrar Refugio'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: coralDark),
+                foregroundColor: coralDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/loginrefugio'),
+              icon: Icon(Icons.account_circle_outlined, color: coralDark),
+              label: Text('Login como Refugio', style: TextStyle(color: coralDark)),
+            ),
+            const SizedBox(height: 20),
+            if (mensaje.isNotEmpty)
+              Text(
+                mensaje,
+                style: TextStyle(
+                  color: mensaje.startsWith('✅') ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
           ],
         ),
       ),
-      bottomNavigationBar: TikiNavBar(
-        selectedIndex: 4,
-        
-      ),
+      bottomNavigationBar: const TikiNavBar(selectedIndex: 4),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/about');
-        },
-        backgroundColor: Colors.teal,
-        child: const Icon(Icons.add),
+        onPressed: () => Navigator.pushNamed(context, '/about'),
+        backgroundColor: coral,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

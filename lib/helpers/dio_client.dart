@@ -8,17 +8,14 @@ class DioClient {
   static void init() {
     dio = Dio(BaseOptions(
       baseUrl: 'https://moviltika-production.up.railway.app',
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      
-      //connectTimeout: const Duration(seconds: 10),
-      //receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
+        // ❌ No pongas Content-Type aquí si usas FormData luego
       },
       extra: {
-        'withCredentials': true, // 👈 NECESARIO para cookies
+        'withCredentials': true,
       },
       validateStatus: (status) => status != null && status < 500,
     ));
@@ -27,13 +24,6 @@ class DioClient {
     dio.interceptors.add(CookieManager(cookieJar));
 
     dio.interceptors.add(InterceptorsWrapper(
-      onError: (DioException e, handler) {
-        print('❌ Error Dio: ${e.message}');
-        print('➡️ URL: ${e.requestOptions.uri}');
-        print('↩️ Status: ${e.response?.statusCode}');
-        print('📦 Data: ${e.response?.data}');
-        return handler.next(e);
-      },
       onRequest: (options, handler) {
         print('➡️ Enviando request: ${options.method} ${options.uri}');
         return handler.next(options);
@@ -41,6 +31,13 @@ class DioClient {
       onResponse: (response, handler) {
         print('✅ Respuesta: ${response.statusCode} ${response.requestOptions.uri}');
         return handler.next(response);
+      },
+      onError: (DioException e, handler) {
+        print('❌ Error Dio: ${e.message}');
+        print('➡️ URL: ${e.requestOptions.uri}');
+        print('↩️ Status: ${e.response?.statusCode}');
+        print('📦 Data: ${e.response?.data}');
+        return handler.next(e);
       },
     ));
   }

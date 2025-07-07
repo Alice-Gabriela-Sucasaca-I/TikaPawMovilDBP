@@ -93,7 +93,11 @@ class _AgregarMascotaPageState extends State<AgregarMascotaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Agregar Mascota')),
+      backgroundColor: const Color(0xFFFFF6F2),
+      appBar: AppBar(
+        title: const Text('Agregar Mascota'),
+        backgroundColor: const Color(0xFFF4A484),
+      ),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -102,64 +106,47 @@ class _AgregarMascotaPageState extends State<AgregarMascotaPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    TextFormField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(labelText: 'Nombre'),
-                      validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-                    ),
-                    TextFormField(
-                      controller: especieController,
-                      decoration: const InputDecoration(labelText: 'Especie'),
-                      validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-                    ),
-                    DropdownButtonFormField<String>(
-                      value: tamanio,
-                      decoration: const InputDecoration(labelText: 'Tamaño'),
-                      items: tamanios
-                          .map((op) => DropdownMenuItem(value: op, child: Text(op)))
-                          .toList(),
-                      onChanged: (value) => setState(() => tamanio = value),
-                      validator: (value) => value == null ? 'Selecciona un tamaño' : null,
-                    ),
-                    TextFormField(
-                      controller: edadController,
-                      decoration: const InputDecoration(labelText: 'Edad'),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Campo requerido';
-                        if (int.tryParse(value) == null) return 'Debe ser un número';
-                        return null;
-                      },
-                    ),
-                    DropdownButtonFormField<String>(
-                      value: genero,
-                      decoration: const InputDecoration(labelText: 'Género'),
-                      items: generos
-                          .map((op) => DropdownMenuItem(value: op, child: Text(op)))
-                          .toList(),
-                      onChanged: (value) => setState(() => genero = value),
-                      validator: (value) => value == null ? 'Selecciona un género' : null,
-                    ),
-                    TextFormField(
-                      controller: descripcionController,
-                      decoration: const InputDecoration(labelText: 'Descripción'),
-                      maxLines: 3,
-                      validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-                    ),
+                    _buildTextField(nombreController, 'Nombre'),
+                    _buildTextField(especieController, 'Especie'),
+                    const SizedBox(height: 10),
+                    _buildDropdown('Tamaño', tamanios, tamanio, (value) => setState(() => tamanio = value)),
+                    const SizedBox(height: 10),
+                    _buildTextField(edadController, 'Edad',
+                        inputType: TextInputType.number,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Campo requerido';
+                          if (int.tryParse(v) == null) return 'Debe ser un número';
+                          return null;
+                        }),
+                    const SizedBox(height: 10),
+                    _buildDropdown('Género', generos, genero, (value) => setState(() => genero = value)),
+                    const SizedBox(height: 10),
+                    _buildTextField(descripcionController, 'Descripción', maxLines: 3),
                     const SizedBox(height: 20),
-                    ElevatedButton(
+                    ElevatedButton.icon(
                       onPressed: seleccionarImagen,
-                      child: const Text('Seleccionar Foto'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF4A484),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      ),
+                      icon: const Icon(Icons.image),
+                      label: const Text('Seleccionar Foto'),
                     ),
                     if (imagen != null)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Image.file(imagen!, width: 150, height: 150),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(imagen!, width: 150, height: 150, fit: BoxFit.cover),
+                        ),
                       ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: enviarFormulario,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF4A484),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+                      ),
                       child: const Text('Registrar Mascota'),
                     ),
                     const SizedBox(height: 10),
@@ -178,11 +165,46 @@ class _AgregarMascotaPageState extends State<AgregarMascotaPage> {
                       Text(
                         mensaje,
                         style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {int maxLines = 1, TextInputType inputType = TextInputType.text, String? Function(String?)? validator}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: inputType,
+      validator: validator ?? (value) => value!.isEmpty ? 'Campo requerido' : null,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(
+      String label, List<String> items, String? value, void Function(String?) onChanged) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      items: items.map((op) => DropdownMenuItem(value: op, child: Text(op))).toList(),
+      onChanged: onChanged,
+      validator: (value) => value == null ? 'Selecciona una opción' : null,
     );
   }
 }
