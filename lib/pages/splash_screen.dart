@@ -26,7 +26,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Espera 3 segundos y pasa automáticamente al onboarding
     Timer(const Duration(seconds: 4), () {
       Navigator.pushReplacementNamed(context, '/onboarding');
     });
@@ -58,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Orbitron', // si tienes esta fuente
+                  fontFamily: 'Orbitron', 
                   color: Colors.black87,
                 ),
               ),

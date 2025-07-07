@@ -17,8 +17,6 @@ import 'pages/mascotainfosolicitud.dart';
 import 'pages/solicitudes_page.dart';
 import 'pages/registerusuario_page.dart';
 import 'pages/registerrefugio_page.dart';
-
-// Agrega estas dos páginas visuales
 import 'pages/splash_screen.dart';
 import 'pages/onboarding_page.dart';
 
@@ -34,7 +32,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // ✅ Aquí iniciamos con el splash que redirige a onboarding o login
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
@@ -118,12 +115,11 @@ class MainWrapper extends StatelessWidget {
           );
         }
 
-        // Cuando se determine, navega al login o al home adecuado
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.pushReplacementNamed(context, snapshot.data!);
         });
 
-        return const SizedBox(); // Pantalla vacía mientras redirige
+        return const SizedBox(); 
       },
     );
   }
